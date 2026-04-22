@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CivicConnect - Smart Election Assistant</title>
+    <meta name="description" content="An interactive AI assistant helping you understand the election process, timelines, and registration steps. Powered by Google Services.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet" />
+    <link rel="stylesheet" href="style.css">
+
+    <!-- Google Analytics (gtag.js) -->
+    <!-- Replace G-XXXXXXXXXX with your own Google Analytics Measurement ID -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXXXX"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', 'G-XXXXXXXXXX');
+    </script>
+</head>
+<body>
+
+    <!-- ===== AUTH OVERLAY ===== -->
+    <div class="auth-overlay" id="auth-overlay">
+        <div class="auth-particles" id="auth-particles"></div>
+        <div class="auth-card glass-panel" id="auth-card">
+            <div class="auth-logo">
+                <span class="material-symbols-outlined auth-logo-icon">how_to_vote</span>
+                <h1>CivicConnect</h1>
+                <p class="auth-tagline">Your Smart Election Assistant</p>
+            </div>
+            
+            <!-- Login Form -->
+            <div class="auth-form" id="login-form">
+                <h2>Welcome Back</h2>
+                <div class="form-group">
+                    <label for="login-email">Email Address</label>
+                    <div class="input-icon-wrapper">
+                        <span class="material-symbols-outlined">mail</span>
+                        <input type="email" id="login-email" placeholder="citizen@example.com" autocomplete="email">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="login-password">Password</label>
+                    <div class="input-icon-wrapper">
+                        <span class="material-symbols-outlined">lock</span>
+                        <input type="password" id="login-password" placeholder="••••••••" autocomplete="current-password">
+                    </div>
+                </div>
+                <button class="auth-submit-btn" id="email-login-btn">
+                    <span class="material-symbols-outlined">login</span>
+                    Sign In
+                </button>
+
+                <div class="auth-divider">
+                    <span>or continue with</span>
+                </div>
+
+                <button class="google-signin-btn" id="google-signin-btn">
+                    <svg width="20" height="20" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
+                    Sign in with Google
+                </button>
+
+                <p class="auth-switch">Don't have an account? <a href="#" id="show-register">Create one</a></p>
+                <button class="skip-auth-btn" id="skip-auth-btn">
+                    <span class="material-symbols-outlined">visibility</span>
+                    Continue as Guest
+                </button>
+            </div>
+
+            <!-- Register Form -->
+            <div class="auth-form hidden" id="register-form">
+                <h2>Create Account</h2>
+                <div class="form-group">
+                    <label for="reg-name">Full Name</label>
+                    <div class="input-icon-wrapper">
+                        <span class="material-symbols-outlined">person</span>
+                        <input type="text" id="reg-name" placeholder="Your full name" autocomplete="name">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="reg-email">Email Address</label>
+                    <div class="input-icon-wrapper">
+                        <span class="material-symbols-outlined">mail</span>
+                        <input type="email" id="reg-email" placeholder="citizen@example.com" autocomplete="email">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="reg-password">Password</label>
+                    <div class="input-icon-wrapper">
+                        <span class="material-symbols-outlined">lock</span>
+                        <input type="password" id="reg-password" placeholder="Min 6 characters" autocomplete="new-password">
+                    </div>
+                </div>
+                <button class="auth-submit-btn" id="email-register-btn">
+                    <span class="material-symbols-outlined">person_add</span>
+                    Create Account
+                </button>
+
+                <div class="auth-divider">
+                    <span>or</span>
+                </div>
+
+                <button class="google-signin-btn" id="google-register-btn">
+                    <svg width="20" height="20" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
+                    Sign up with Google
+                </button>
+
+                <p class="auth-switch">Already have an account? <a href="#" id="show-login">Sign in</a></p>
+            </div>
+
+            <div class="auth-error hidden" id="auth-error">
+                <span class="material-symbols-outlined">error</span>
+                <span id="auth-error-text"></span>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== MAIN APPLICATION ===== -->
+    <div class="app-container hidden" id="app-container">
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar" id="sidebar">
+            <div class="logo-area">
+                <span class="material-symbols-outlined logo-icon">how_to_vote</span>
+                <h1>CivicConnect</h1>
+            </div>
+            
+            <nav class="nav-menu">
+                <button class="nav-btn active" data-target="chat-view" id="nav-chat">
+                    <span class="material-symbols-outlined">smart_toy</span>
+                    <span>AI Assistant</span>
+                </button>
+                <button class="nav-btn" data-target="timeline-view" id="nav-timeline">
+                    <span class="material-symbols-outlined">calendar_month</span>
+                    <span>Election Timeline</span>
+                </button>
+                <button class="nav-btn" data-target="maps-view" id="nav-maps">
+                    <span class="material-symbols-outlined">location_on</span>
+                    <span>Polling Station</span>
+                </button>
+                <button class="nav-btn" data-target="registration-view" id="nav-register">
+                    <span class="material-symbols-outlined">app_registration</span>
+                    <span>Registration Steps</span>
+                </button>
+                <button class="nav-btn" data-target="stats-view" id="nav-stats">
+                    <span class="material-symbols-outlined">bar_chart</span>
+                    <span>Election Stats</span>
+                </button>
+            </nav>
+
+            <!-- Google Translate Widget -->
+            <div class="translate-widget" id="translate-widget-area">
+                <div class="translate-label">
+                    <span class="material-symbols-outlined">translate</span>
+                    <span>Google Translate</span>
+                </div>
+                <div id="google_translate_element"></div>
+            </div>
+
+            <div class="sidebar-footer">
+                <div class="user-profile" id="user-profile-area">
+                    <div class="avatar" id="user-avatar">
+                        <span class="material-symbols-outlined">person</span>
+                    </div>
+                    <div class="user-info">
+                        <span class="user-name" id="user-display-name">Citizen</span>
+                        <span class="user-status" id="user-auth-status">Guest</span>
+                    </div>
+                    <button class="icon-btn logout-btn" id="logout-btn" title="Sign Out">
+                        <span class="material-symbols-outlined">logout</span>
+                    </button>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Mobile Header -->
+        <div class="mobile-header" id="mobile-header">
+            <button class="icon-btn" id="mobile-menu-btn">
+                <span class="material-symbols-outlined">menu</span>
+            </button>
+            <div class="logo-area">
+                <span class="material-symbols-outlined logo-icon">how_to_vote</span>
+                <h1>CivicConnect</h1>
+            </div>
+            <div class="avatar" id="mobile-user-avatar">
+                <span class="material-symbols-outlined">person</span>
+            </div>
+        </div>
+
+        <!-- Main Content Area -->
+        <main class="main-content">
+            <!-- 1. AI Chat Assistant View -->
+            <section id="chat-view" class="view-section active custom-scrollbar">
+                <header class="section-header glass-panel">
+                    <div class="header-title">
+                        <h2>Election AI Assistant</h2>
+                        <span class="badge online">Online</span>
+                    </div>
+                    <p class="subtitle">Ask me anything about voter registration, election dates, or candidates.</p>
+                    <div class="header-actions">
+                        <button class="icon-btn tooltip" id="tts-toggle" data-tooltip="Toggle Text-to-Speech">
+                            <span class="material-symbols-outlined">volume_up</span>
+                        </button>
+                    </div>
+                </header>
+
+                <div class="chat-container">
+                    <div class="chat-messages" id="chat-messages">
+                        <!-- Messages point -->
+                        <div class="message assistant">
+                            <div class="msg-avatar">
+                                <span class="material-symbols-outlined">smart_toy</span>
+                            </div>
+                            <div class="msg-bubble">
+                                <p>Hello! I'm your CivicConnect Assistant. I can help you understand the election process, check your voter eligibility, or guide you through registration. How can I assist you today?</p>
+                                <div class="quick-replies">
+                                    <button class="quick-reply-btn" onclick="sendQuickReply('How do I register to vote?')">How do I register to vote?</button>
+                                    <button class="quick-reply-btn" onclick="sendQuickReply('When is the next election?')">When is the next election?</button>
+                                    <button class="quick-reply-btn" onclick="sendQuickReply('What documents do I need?')">What documents do I need?</button>
+                                    <button class="quick-reply-btn" onclick="sendQuickReply('Check my eligibility')">Check my eligibility</button>
+                                    <button class="quick-reply-btn" onclick="sendQuickReply('Types of elections')">Types of elections</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="chat-input-area glass-panel">
+                        <div class="input-wrapper">
+                            <button class="icon-btn tooltip" id="voice-input-btn" data-tooltip="Voice Input (Web Speech API)">
+                                <span class="material-symbols-outlined" id="mic-icon">mic</span>
+                            </button>
+                            <input type="text" id="chat-input" placeholder="Type your question here..." autocomplete="off">
+                            <button class="send-btn" id="send-btn">
+                                <span class="material-symbols-outlined">send</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 2. Election Timeline View -->
+            <section id="timeline-view" class="view-section custom-scrollbar">
+                <header class="section-header glass-panel">
+                    <h2>Election Timeline 2026</h2>
+                    <p class="subtitle">Key dates and deadlines for the upcoming elections.</p>
+                    <div class="header-actions">
+                        <button class="btn-primary-inline" id="add-gcal-btn">
+                            <span class="material-symbols-outlined">calendar_add_on</span>
+                            Add to Google Calendar
+                        </button>
+                    </div>
+                </header>
+
+                <div class="timeline-container">
+                    <div class="timeline">
+                        <div class="timeline-item past">
+                            <div class="timeline-dot"></div>
+                            <div class="timeline-content glass-panel">
+                                <div class="timeline-header-row">
+                                    <h3>Voter Registration Opens</h3>
+                                    <button class="cal-mini-btn tooltip" data-tooltip="Add this event" data-event="Voter Registration Opens" data-date="2026-01-15">
+                                        <span class="material-symbols-outlined">event</span>
+                                    </button>
+                                </div>
+                                <p class="date">January 15, 2026</p>
+                                <p>Official start date for new voter registrations and updating existing records.</p>
+                                <span class="badge success">Completed</span>
+                            </div>
+                        </div>
+                        <div class="timeline-item active">
+                            <div class="timeline-dot pulse"></div>
+                            <div class="timeline-content glass-panel">
+                                <div class="timeline-header-row">
+                                    <h3>Registration Deadline</h3>
+                                    <button class="cal-mini-btn tooltip" data-tooltip="Add this event" data-event="Registration Deadline" data-date="2026-05-01">
+                                        <span class="material-symbols-outlined">event</span>
+                                    </button>
+                                </div>
+                                <p class="date">May 1, 2026</p>
+                                <p>Last day to register to vote or update your address for the upcoming primary election.</p>
+                                <span class="badge warning">Upcoming</span>
+                                <div class="countdown-timer" id="countdown-registration">
+                                    <!-- JS will fill this -->
+                                </div>
+                            </div>
+                        </div>
+                        <div class="timeline-item">
+                            <div class="timeline-dot"></div>
+                            <div class="timeline-content glass-panel">
+                                <div class="timeline-header-row">
+                                    <h3>Early Voting Begins</h3>
+                                    <button class="cal-mini-btn tooltip" data-tooltip="Add this event" data-event="Early Voting Begins" data-date="2026-05-15">
+                                        <span class="material-symbols-outlined">event</span>
+                                    </button>
+                                </div>
+                                <p class="date">May 15, 2026</p>
+                                <p>Polling stations open for early in-person voting. Check your local schedule.</p>
+                            </div>
+                        </div>
+                        <div class="timeline-item">
+                            <div class="timeline-dot"></div>
+                            <div class="timeline-content glass-panel">
+                                <div class="timeline-header-row">
+                                    <h3>Mail-In Ballot Request Deadline</h3>
+                                    <button class="cal-mini-btn tooltip" data-tooltip="Add this event" data-event="Mail-In Ballot Deadline" data-date="2026-05-25">
+                                        <span class="material-symbols-outlined">event</span>
+                                    </button>
+                                </div>
+                                <p class="date">May 25, 2026</p>
+                                <p>Last day to request a mail-in/absentee ballot for the general election.</p>
+                            </div>
+                        </div>
+                        <div class="timeline-item">
+                            <div class="timeline-dot"></div>
+                            <div class="timeline-content glass-panel">
+                                <div class="timeline-header-row">
+                                    <h3>General Election Day</h3>
+                                    <button class="cal-mini-btn tooltip" data-tooltip="Add this event" data-event="General Election Day" data-date="2026-06-02">
+                                        <span class="material-symbols-outlined">event</span>
+                                    </button>
+                                </div>
+                                <p class="date">June 2, 2026</p>
+                                <p>Main voting day. Polls are open from 7:00 AM to 8:00 PM.</p>
+                                <div class="countdown-timer" id="countdown-election">
+                                    <!-- JS will fill this -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 3. Maps View -->
+            <section id="maps-view" class="view-section custom-scrollbar">
+                <header class="section-header glass-panel">
+                    <h2>Find Polling Station</h2>
+                    <p class="subtitle">Powered by Google Maps — locate your nearest polling booth.</p>
+                </header>
+
+                <div class="maps-container">
+                    <div class="search-box glass-panel">
+                        <span class="material-symbols-outlined">search</span>
+                        <input type="text" id="map-search-input" placeholder="Enter your ZIP code or address...">
+                        <button class="btn-primary-inline" id="map-search-btn">Search</button>
+                    </div>
+                    
+                    <div class="map-wrapper glass-panel">
+                        <iframe 
+                            id="google-map-frame"
+                            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d100939.98555098464!2d-122.507640204439!3d37.7578149966017!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x80859a6d00690021%3A0x4a501367f076adff!2sSan%20Francisco%2C%20CA!5e0!3m2!1sen!2sus!4v1700000000000!5m2!1sen!2sus" 
+                            width="100%" 
+                            height="100%" 
+                            style="border:0;" 
+                            allowfullscreen="" 
+                            loading="lazy" 
+                            referrerpolicy="no-referrer-when-downgrade">
+                        </iframe>
+                        
+                        <div class="map-overlay">
+                            <div class="station-card glass-panel" id="station-card">
+                                <h3 id="station-name">City Hall Polling Station</h3>
+                                <p class="distance" id="station-distance">1.2 miles away</p>
+                                <p class="address" id="station-address">1 Dr Carlton B Goodlett Pl, San Francisco, CA 94102</p>
+                                <div class="station-status">
+                                    <span class="status-dot green"></span>
+                                    <span>Wait time: ~15 mins</span>
+                                </div>
+                                <button class="btn-secondary" id="get-directions-btn">
+                                    <span class="material-symbols-outlined">directions</span>
+                                    Get Directions
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 4. Registration View -->
+            <section id="registration-view" class="view-section custom-scrollbar">
+                <header class="section-header glass-panel">
+                    <h2>Registration Steps</h2>
+                    <p class="subtitle">A simple guide to getting ready for Election Day.</p>
+                </header>
+
+                <!-- Eligibility Checker -->
+                <div class="eligibility-checker glass-panel" id="eligibility-checker">
+                    <h3><span class="material-symbols-outlined">fact_check</span> Quick Eligibility Check</h3>
+                    <div class="eligibility-form">
+                        <div class="elig-row">
+                            <label><input type="checkbox" id="elig-citizen"> I am a citizen of this country</label>
+                        </div>
+                        <div class="elig-row">
+                            <label><input type="checkbox" id="elig-age"> I am at least 18 years old (or will be by Election Day)</label>
+                        </div>
+                        <div class="elig-row">
+                            <label><input type="checkbox" id="elig-resident"> I meet the state residency requirements</label>
+                        </div>
+                        <div class="elig-row">
+                            <label><input type="checkbox" id="elig-felon"> I am not currently serving a felony sentence (varies by state)</label>
+                        </div>
+                        <button class="btn-primary-inline" id="check-eligibility-btn">
+                            <span class="material-symbols-outlined">check_circle</span>
+                            Check Eligibility
+                        </button>
+                        <div class="elig-result hidden" id="elig-result"></div>
+                    </div>
+                </div>
+
+                <div class="steps-container">
+                    <div class="step-card glass-panel" data-step="1">
+                        <div class="step-number">1</div>
+                        <div class="step-details">
+                            <h3>Check Eligibility</h3>
+                            <p>You must be a citizen, at least 18 years old on or before Election Day, and meet state residency requirements.</p>
+                            <div class="step-checklist">
+                                <div class="check-item"><span class="material-symbols-outlined">check</span> Age requirement</div>
+                                <div class="check-item"><span class="material-symbols-outlined">check</span> Citizenship status</div>
+                                <div class="check-item"><span class="material-symbols-outlined">check</span> Residency proof</div>
+                            </div>
+                        </div>
+                        <span class="material-symbols-outlined icon-large">verified_user</span>
+                    </div>
+                    
+                    <div class="step-card glass-panel" data-step="2">
+                        <div class="step-number">2</div>
+                        <div class="step-details">
+                            <h3>Gather Documents</h3>
+                            <p>Prepare a valid ID (Driver's License, State ID, or Passport) and proof of residence (Utility bill, bank statement).</p>
+                            <div class="step-checklist">
+                                <div class="check-item"><span class="material-symbols-outlined">check</span> Government-issued photo ID</div>
+                                <div class="check-item"><span class="material-symbols-outlined">check</span> Proof of address</div>
+                                <div class="check-item"><span class="material-symbols-outlined">check</span> Social Security number</div>
+                            </div>
+                        </div>
+                        <span class="material-symbols-outlined icon-large">folder_shared</span>
+                    </div>
+
+                    <div class="step-card glass-panel" data-step="3">
+                        <div class="step-number">3</div>
+                        <div class="step-details">
+                            <h3>Fill the Form</h3>
+                            <p>Complete the National Voter Registration form online or at your local election office.</p>
+                            <button class="btn-primary-inline mt-2" id="open-reg-form-btn">
+                                <span class="material-symbols-outlined">edit_document</span>
+                                Start Form
+                            </button>
+                        </div>
+                        <span class="material-symbols-outlined icon-large">edit_document</span>
+                    </div>
+
+                    <div class="step-card glass-panel" data-step="4">
+                        <div class="step-number">4</div>
+                        <div class="step-details">
+                            <h3>Confirm Registration</h3>
+                            <p>You will receive a voter registration card in the mail within 2-3 weeks. You can also verify online.</p>
+                        </div>
+                        <span class="material-symbols-outlined icon-large">mark_email_read</span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 5. Election Statistics View (Google Charts) -->
+            <section id="stats-view" class="view-section custom-scrollbar">
+                <header class="section-header glass-panel">
+                    <h2>Election Statistics</h2>
+                    <p class="subtitle">Interactive data visualization powered by Google Charts.</p>
+                </header>
+
+                <div class="stats-grid">
+                    <div class="stat-card glass-panel">
+                        <div class="stat-header">
+                            <span class="material-symbols-outlined">groups</span>
+                            <h3>Voter Turnout by Year</h3>
+                        </div>
+                        <div class="chart-container" id="turnout-chart"></div>
+                    </div>
+
+                    <div class="stat-card glass-panel">
+                        <div class="stat-header">
+                            <span class="material-symbols-outlined">pie_chart</span>
+                            <h3>Registration by Age Group</h3>
+                        </div>
+                        <div class="chart-container" id="age-chart"></div>
+                    </div>
+
+                    <div class="stat-card glass-panel">
+                        <div class="stat-header">
+                            <span class="material-symbols-outlined">ballot</span>
+                            <h3>Voting Methods</h3>
+                        </div>
+                        <div class="chart-container" id="method-chart"></div>
+                    </div>
+
+                    <div class="stat-card glass-panel wide-card">
+                        <div class="stat-header">
+                            <span class="material-symbols-outlined">trending_up</span>
+                            <h3>Registration Trend Over Time</h3>
+                        </div>
+                        <div class="chart-container tall-chart" id="trend-chart"></div>
+                    </div>
+                </div>
+            </section>
+
+        </main>
+    </div>
+
+    <!-- Toast Notification -->
+    <div class="toast-container" id="toast-container"></div>
+
+    <!-- Firebase SDK (v9 compat) -->
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+
+    <!-- Google Charts -->
+    <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+
+    <!-- Google Translate -->
+    <script type="text/javascript">
+        function googleTranslateElementInit() {
+            new google.translate.TranslateElement({
+                pageLanguage: 'en',
+                includedLanguages: 'en,es,fr,de,hi,zh-CN,ar,ja,ko,pt,ru',
+                layout: google.translate.TranslateElement.InlineLayout.SIMPLE,
+                autoDisplay: false
+            }, 'google_translate_element');
+        }
+    </script>
+    <script type="text/javascript" src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
+
+    <script src="app.js"></script>
+</body>
+</html>
