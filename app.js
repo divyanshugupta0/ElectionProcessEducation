@@ -1233,6 +1233,11 @@ if (themeToggleBtn) {
             root.style.setProperty('--glass-border', 'hsla(0, 0%, 0%, 0.1)');
             root.style.setProperty('--border-color', 'hsla(0, 0%, 0%, 0.1)');
             
+            // Fixes for visibility in Light Mode
+            root.style.setProperty('--input-bg', 'hsla(0, 0%, 100%, 0.6)');
+            root.style.setProperty('--sidebar-bg', 'hsla(210, 40%, 94%, 0.9)');
+            root.style.setProperty('--hover-bg', 'hsla(0, 0%, 0%, 0.05)');
+            
             document.getElementById('theme-icon').textContent = 'dark_mode';
             document.getElementById('theme-text').textContent = 'Dark Mode';
             showToast('Switched to Light Mode', 'info');
@@ -1246,6 +1251,10 @@ if (themeToggleBtn) {
             root.style.removeProperty('--glass-bg');
             root.style.removeProperty('--glass-border');
             root.style.removeProperty('--border-color');
+            
+            root.style.removeProperty('--input-bg');
+            root.style.removeProperty('--sidebar-bg');
+            root.style.removeProperty('--hover-bg');
             
             document.getElementById('theme-icon').textContent = 'light_mode';
             document.getElementById('theme-text').textContent = 'Light Mode';
