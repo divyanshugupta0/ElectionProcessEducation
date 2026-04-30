@@ -442,15 +442,22 @@ function getFriendlyError(code) {
 // ====================================================================
 navButtons.forEach(btn => {
     btn.addEventListener('click', () => {
-        navButtons.forEach(b => b.classList.remove('active'));
+        const targetId = btn.getAttribute('data-target');
+        if (!targetId) return; // Prevent theme toggle / logout from breaking active view
+
+        navButtons.forEach(b => {
+            if (b.hasAttribute('data-target')) {
+                b.classList.remove('active');
+                b.setAttribute('aria-pressed', 'false');
+            }
+        });
         viewSections.forEach(v => v.classList.remove('active'));
 
         btn.classList.add('active');
         btn.setAttribute('aria-pressed', 'true');
         
-        const targetId = btn.getAttribute('data-target');
         const targetSection = document.getElementById(targetId);
-        targetSection.classList.add('active');
+        if (targetSection) targetSection.classList.add('active');
         
         // Accessibility: announce view change
         announceToScreenReader(`Navigated to ${btn.innerText.trim()}`);
