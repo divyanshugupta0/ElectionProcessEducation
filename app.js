@@ -956,6 +956,9 @@ document.getElementById('check-eligibility-btn')?.addEventListener('click', () =
     ];
 
     const result = document.getElementById('elig-result');
+    const passContainer = document.getElementById('voter-pass-container');
+    const passCard = document.getElementById('voter-pass-card');
+    
     result.classList.remove('hidden', 'eligible', 'not-eligible');
 
     if (checks.every(Boolean)) {
@@ -965,6 +968,9 @@ document.getElementById('check-eligibility-btn')?.addEventListener('click', () =
         announceToScreenReader('Eligibility check passed. You appear to be eligible to vote.');
         saveEligibilityResponse(true, { citizen: true, age: true, resident: true, felon: true });
         trackEvent('eligibility', 'check_passed');
+        
+        // Show Voter Pass container
+        passContainer.classList.remove('hidden');
     } else {
         result.classList.add('not-eligible');
         const missing = [];
@@ -976,7 +982,36 @@ document.getElementById('check-eligibility-btn')?.addEventListener('click', () =
         announceToScreenReader(`Eligibility check failed. Missing criteria: ${missing.join(', ')}.`);
         saveEligibilityResponse(false, { citizen: checks[0], age: checks[1], resident: checks[2], felon: checks[3] });
         trackEvent('eligibility', 'check_failed', missing.join(','));
+        
+        // Hide Voter pass if failed
+        passContainer.classList.add('hidden');
+        passCard.classList.add('hidden');
     }
+});
+
+// Digital Voter Pass Generation
+document.getElementById('generate-pass-btn')?.addEventListener('click', () => {
+    const passCard = document.getElementById('voter-pass-card');
+    const passName = document.getElementById('voter-pass-name');
+    const passId = document.getElementById('voter-pass-id');
+    
+    // Animate in
+    passCard.classList.remove('hidden');
+    setTimeout(() => {
+        passCard.style.transform = 'scale(1)';
+    }, 50);
+    
+    const name = currentUser?.displayName || 'Guest Citizen';
+    passName.textContent = DOMPurify.sanitize(name);
+    
+    // Generate a random ID format: VTR-XXXX-YYYY
+    const randomId = Math.random().toString(36).substring(2, 6).toUpperCase();
+    const randomYear = new Date().getFullYear();
+    passId.textContent = `ID: VTR-${randomId}-${randomYear}`;
+    
+    showToast('Digital Voter Pass Generated!', 'success');
+    announceToScreenReader('Digital Voter Pass Generated.');
+    trackEvent('engagement', 'voter_pass_generated');
 });
 
 // Registration form button
@@ -1178,3 +1213,44 @@ navButtons.forEach(btn => {
         trackEvent('navigation', 'view_change', target);
     });
 });
+
+// ====================================================================
+// 15. THEME SWITCHER
+// ====================================================================
+const themeToggleBtn = document.getElementById('theme-toggle');
+if (themeToggleBtn) {
+    let isLightMode = false;
+    themeToggleBtn.addEventListener('click', () => {
+        isLightMode = !isLightMode;
+        const root = document.documentElement;
+        
+        if (isLightMode) {
+            root.style.setProperty('--bg-dark', 'hsl(210, 40%, 96%)');
+            root.style.setProperty('--bg-darker', 'hsl(210, 40%, 98%)');
+            root.style.setProperty('--text-main', 'hsl(222, 47%, 11%)');
+            root.style.setProperty('--text-dim', 'hsl(215, 20%, 35%)');
+            root.style.setProperty('--glass-bg', 'hsla(0, 0%, 100%, 0.8)');
+            root.style.setProperty('--glass-border', 'hsla(0, 0%, 0%, 0.1)');
+            root.style.setProperty('--border-color', 'hsla(0, 0%, 0%, 0.1)');
+            
+            document.getElementById('theme-icon').textContent = 'dark_mode';
+            document.getElementById('theme-text').textContent = 'Dark Mode';
+            showToast('Switched to Light Mode', 'info');
+            trackEvent('engagement', 'theme_switched', 'light');
+        } else {
+            // Reset to dark mode (empty string removes inline style to fall back to CSS class)
+            root.style.removeProperty('--bg-dark');
+            root.style.removeProperty('--bg-darker');
+            root.style.removeProperty('--text-main');
+            root.style.removeProperty('--text-dim');
+            root.style.removeProperty('--glass-bg');
+            root.style.removeProperty('--glass-border');
+            root.style.removeProperty('--border-color');
+            
+            document.getElementById('theme-icon').textContent = 'light_mode';
+            document.getElementById('theme-text').textContent = 'Light Mode';
+            showToast('Switched to Dark Mode', 'info');
+            trackEvent('engagement', 'theme_switched', 'dark');
+        }
+    });
+}
