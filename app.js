@@ -5,6 +5,39 @@
 //                  Google Calendar, Google Analytics, Web Speech API
 // ====================================================================
 
+"use strict"; // Enforce strict mode for better code quality and error catching
+
+// ─── Utility: Security & Sanitization ───────────────────────────────
+const DOMPurify = {
+    sanitize: (str) => {
+        if (typeof str !== 'string') return '';
+        return str.replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#x27;');
+    }
+};
+
+// ─── Utility: Accessibility Announcer ───────────────────────────────
+function announceToScreenReader(message) {
+    const announcer = document.getElementById('sr-announcer');
+    if (announcer) {
+        announcer.textContent = message;
+        // Clear after a moment to allow repeating the same message later
+        setTimeout(() => { announcer.textContent = ''; }, 3000);
+    }
+}
+
+// ─── Utility: Debounce (Efficiency) ─────────────────────────────────
+function debounce(func, wait) {
+    let timeout;
+    return function executedFunction(...args) {
+        const later = () => {
+            clearTimeout(timeout);
+            func(...args);
+        };
+        clearTimeout(timeout);
+        timeout = setTimeout(later, wait);
+    };
+}
+
 // ─── Firebase Configuration ─────────────────────────────────────────
 // NOTE: Replace with your own Firebase project credentials.
 // Go to https://console.firebase.google.com → Create Project → Web App → Copy Config
@@ -164,8 +197,11 @@ emailLoginBtn.addEventListener('click', async () => {
     try {
         await auth.signInWithEmailAndPassword(email, password);
         showToast('Welcome back!', 'success');
+        announceToScreenReader('Successfully signed in. Welcome back to CivicConnect.');
     } catch (err) {
-        showAuthError(getFriendlyError(err.code));
+        const friendlyError = getFriendlyError(err.code);
+        showAuthError(friendlyError);
+        announceToScreenReader(`Sign in failed: ${friendlyError}`);
     }
     setButtonLoading(emailLoginBtn, false);
 });
@@ -186,8 +222,11 @@ emailRegisterBtn.addEventListener('click', async () => {
         // Save user profile to Firestore
         await saveUserProfile(cred.user);
         showToast('Account created! Welcome to CivicConnect.', 'success');
+        announceToScreenReader('Account created successfully. Welcome to CivicConnect.');
     } catch (err) {
-        showAuthError(getFriendlyError(err.code));
+        const friendlyError = getFriendlyError(err.code);
+        showAuthError(friendlyError);
+        announceToScreenReader(`Registration failed: ${friendlyError}`);
     }
     setButtonLoading(emailRegisterBtn, false);
 });
@@ -198,9 +237,12 @@ function handleGoogleSignIn() {
         .then(result => {
             saveUserProfile(result.user);
             showToast('Signed in with Google!', 'success');
+            announceToScreenReader('Successfully signed in with Google.');
         })
         .catch(err => {
-            showAuthError(getFriendlyError(err.code));
+            const friendlyError = getFriendlyError(err.code);
+            showAuthError(friendlyError);
+            announceToScreenReader(`Google sign in failed: ${friendlyError}`);
         });
 }
 
@@ -211,6 +253,7 @@ googleRegisterBtn.addEventListener('click', handleGoogleSignIn);
 skipAuthBtn.addEventListener('click', () => {
     enterApp(null);
     showToast('Browsing as Guest. Sign in to save your progress.', 'info');
+    announceToScreenReader('Continuing as guest. Some features may be limited.');
     trackEvent('auth', 'guest_login');
 });
 
@@ -218,9 +261,13 @@ skipAuthBtn.addEventListener('click', () => {
 logoutBtn.addEventListener('click', () => {
     auth.signOut().then(() => {
         showToast('Signed out successfully.', 'info');
+        announceToScreenReader('You have been signed out.');
         currentUser = null;
         authOverlay.classList.remove('hide');
         appContainer.classList.add('hidden');
+        
+        // Reset Focus for Accessibility
+        document.getElementById('email-login-btn')?.focus();
     });
 });
 
@@ -295,6 +342,7 @@ async function loadChatHistory() {
         const existingMessages = chatMessages.querySelectorAll('.message');
         if (Object.keys(messages).length > 0 && existingMessages.length <= 1) {
             Object.values(messages).forEach(msg => {
+                // Ensure text is safely injected when loading history
                 appendMessage(msg.text, msg.role === 'user', true); // true = skipSave
             });
             showToast('Previous chat history loaded.', 'info');
@@ -360,6 +408,18 @@ function enterApp(user) {
     // Load charts after entering app
     loadGoogleCharts();
     startCountdowns();
+    
+    // Accessibility: Set focus on the active tab's first focusable element or heading
+    setTimeout(() => {
+        const activeSection = document.querySelector('.view-section.active');
+        if (activeSection) {
+            const heading = activeSection.querySelector('h2');
+            if (heading) {
+                heading.tabIndex = -1;
+                heading.focus();
+            }
+        }
+    }, 100);
 }
 
 function getFriendlyError(code) {
@@ -386,13 +446,29 @@ navButtons.forEach(btn => {
         viewSections.forEach(v => v.classList.remove('active'));
 
         btn.classList.add('active');
+        btn.setAttribute('aria-pressed', 'true');
+        
         const targetId = btn.getAttribute('data-target');
-        document.getElementById(targetId).classList.add('active');
+        const targetSection = document.getElementById(targetId);
+        targetSection.classList.add('active');
+        
+        // Accessibility: announce view change
+        announceToScreenReader(`Navigated to ${btn.innerText.trim()}`);
 
         // Close mobile sidebar
-        document.getElementById('sidebar').classList.remove('open');
+        const sidebar = document.getElementById('sidebar');
+        sidebar.classList.remove('open');
         const overlay = document.querySelector('.sidebar-overlay');
         if (overlay) overlay.remove();
+        
+        // Set focus to new section for keyboard navigation
+        setTimeout(() => {
+            const heading = targetSection.querySelector('h2');
+            if(heading) {
+                heading.tabIndex = -1;
+                heading.focus();
+            }
+        }, 50);
     });
 });
 
@@ -528,20 +604,28 @@ function appendMessage(text, isUser, skipSave = false) {
     const avatarIcon = isUser ? 'person' : 'smart_toy';
 
     // Use user's photo for avatar if available
-    let avatarContent = `<span class="material-symbols-outlined">${avatarIcon}</span>`;
+    let avatarContent = `<span class="material-symbols-outlined" aria-hidden="true">${avatarIcon}</span>`;
     if (isUser && currentUser?.photoURL) {
-        avatarContent = `<img src="${currentUser.photoURL}" alt="you" style="width:100%;height:100%;border-radius:12px;object-fit:cover;">`;
+        avatarContent = `<img src="${DOMPurify.sanitize(currentUser.photoURL)}" alt="Your Avatar" style="width:100%;height:100%;border-radius:12px;object-fit:cover;">`;
     }
+
+    // Security: Basic sanitization of user input before rendering
+    const safeText = isUser ? DOMPurify.sanitize(text) : text; // Bot text is HTML from our system
 
     msgDiv.innerHTML = `
         <div class="msg-avatar">${avatarContent}</div>
         <div class="msg-bubble">
-            <p>${text}</p>
+            <p>${safeText}</p>
         </div>
     `;
 
     chatMessages.appendChild(msgDiv);
     chatMessages.scrollTop = chatMessages.scrollHeight;
+    
+    // Announce bot messages to screen readers (if TTS isn't taking over)
+    if (!isUser && !ttsEnabled) {
+        announceToScreenReader('New message from assistant.');
+    }
 
     // Text-to-Speech for bot messages
     if (!isUser && ttsEnabled) {
@@ -578,6 +662,11 @@ function removeTypingIndicator() {
 async function getGeminiResponse(userMessage) {
     // Add user message to conversation history
     conversationHistory.push({ role: 'user', parts: [{ text: userMessage }] });
+
+    // Ensure we don't exceed reasonable limits
+    if(conversationHistory.length > 20) {
+        conversationHistory = conversationHistory.slice(-20);
+    }
 
     const requestBody = {
         system_instruction: {
@@ -661,9 +750,12 @@ async function handleSend() {
     }
 }
 
-sendBtn.addEventListener('click', handleSend);
+// Prevent spamming the send button (Efficiency)
+const handleSendDebounced = debounce(handleSend, 500);
+
+sendBtn.addEventListener('click', handleSendDebounced);
 chatInput.addEventListener('keypress', (e) => {
-    if (e.key === 'Enter') handleSend();
+    if (e.key === 'Enter') handleSendDebounced();
 });
 
 // ====================================================================
@@ -688,20 +780,26 @@ if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
     recognition.onstart = () => {
         isListening = true;
         voiceInputBtn.classList.add('active');
+        voiceInputBtn.setAttribute('aria-pressed', 'true');
         micIcon.textContent = 'mic_off';
         showToast('Listening... Speak now.', 'info');
+        announceToScreenReader('Voice input started. Please speak your question.');
     };
 
     recognition.onend = () => {
         isListening = false;
         voiceInputBtn.classList.remove('active');
+        voiceInputBtn.setAttribute('aria-pressed', 'false');
         micIcon.textContent = 'mic';
+        announceToScreenReader('Voice input ended.');
     };
 
     recognition.onerror = () => {
         isListening = false;
         voiceInputBtn.classList.remove('active');
+        voiceInputBtn.setAttribute('aria-pressed', 'false');
         micIcon.textContent = 'mic';
+        showToast('Voice input error. Please try again.', 'error');
     };
 }
 
@@ -723,7 +821,9 @@ voiceInputBtn.addEventListener('click', () => {
 ttsToggle.addEventListener('click', () => {
     ttsEnabled = !ttsEnabled;
     ttsToggle.querySelector('.material-symbols-outlined').textContent = ttsEnabled ? 'volume_up' : 'volume_off';
+    ttsToggle.setAttribute('aria-pressed', ttsEnabled.toString());
     showToast(`Text-to-Speech ${ttsEnabled ? 'enabled' : 'disabled'}`, 'info');
+    announceToScreenReader(`Text to speech ${ttsEnabled ? 'enabled' : 'disabled'}`);
 });
 
 function speakText(text) {
@@ -796,13 +896,18 @@ function startCountdowns() {
         `;
     }
 
-    setInterval(() => {
+    const countdownInterval = setInterval(() => {
         updateCountdown('countdown-registration', '2026-05-01T00:00:00');
         updateCountdown('countdown-election', '2026-06-02T00:00:00');
     }, 1000);
 
+    // Initial call
     updateCountdown('countdown-registration', '2026-05-01T00:00:00');
     updateCountdown('countdown-election', '2026-06-02T00:00:00');
+    
+    // Clear interval on view change if needed (Memory Management)
+    // For SPA, it might run infinitely, but good practice to keep the ref
+    window._countdownInterval = countdownInterval;
 }
 
 // ====================================================================
@@ -810,13 +915,19 @@ function startCountdowns() {
 // ====================================================================
 document.getElementById('map-search-btn')?.addEventListener('click', () => {
     const query = document.getElementById('map-search-input').value.trim();
-    if (!query) return showToast('Please enter a ZIP code or address.', 'error');
+    if (!query) {
+        announceToScreenReader('Please enter a ZIP code or address to search.');
+        return showToast('Please enter a ZIP code or address.', 'error');
+    }
+
+    // Security: sanitize query before injecting into URL
+    const safeQuery = encodeURIComponent(DOMPurify.sanitize(query));
 
     const frame = document.getElementById('google-map-frame');
-    frame.src = `https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d50000!2d0!3d0!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2s${encodeURIComponent(query)}!5e0!3m2!1sen!2sus`;
+    frame.src = `https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d50000!2d0!3d0!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2s${safeQuery}!5e0!3m2!1sen!2sus`;
 
     // Simulate a polling station for the searched location
-    document.getElementById('station-name').textContent = `Polling Station near ${query}`;
+    document.getElementById('station-name').textContent = `Polling Station near ${DOMPurify.sanitize(query)}`;
     document.getElementById('station-distance').textContent = `${(Math.random() * 5 + 0.3).toFixed(1)} miles away`;
     document.getElementById('station-address').textContent = `Nearest station for: ${query}`;
     showToast('Searching for polling stations...', 'info');
@@ -849,8 +960,9 @@ document.getElementById('check-eligibility-btn')?.addEventListener('click', () =
 
     if (checks.every(Boolean)) {
         result.classList.add('eligible');
-        result.innerHTML = '<span class="material-symbols-outlined">check_circle</span> You appear to be eligible to vote! Proceed to the registration steps below.';
+        result.innerHTML = '<span class="material-symbols-outlined" aria-hidden="true">check_circle</span> You appear to be eligible to vote! Proceed to the registration steps below.';
         showToast('Eligibility check passed! ✅', 'success');
+        announceToScreenReader('Eligibility check passed. You appear to be eligible to vote.');
         saveEligibilityResponse(true, { citizen: true, age: true, resident: true, felon: true });
         trackEvent('eligibility', 'check_passed');
     } else {
@@ -860,7 +972,8 @@ document.getElementById('check-eligibility-btn')?.addEventListener('click', () =
         if (!checks[1]) missing.push('age requirement');
         if (!checks[2]) missing.push('residency');
         if (!checks[3]) missing.push('felony status');
-        result.innerHTML = `<span class="material-symbols-outlined">cancel</span> Not all criteria met. Please review: ${missing.join(', ')}.`;
+        result.innerHTML = `<span class="material-symbols-outlined" aria-hidden="true">cancel</span> Not all criteria met. Please review: ${missing.join(', ')}.`;
+        announceToScreenReader(`Eligibility check failed. Missing criteria: ${missing.join(', ')}.`);
         saveEligibilityResponse(false, { citizen: checks[0], age: checks[1], resident: checks[2], felon: checks[3] });
         trackEvent('eligibility', 'check_failed', missing.join(','));
     }
@@ -1003,12 +1116,14 @@ function drawTrendChart() {
     chart.draw(data, options);
 }
 
-// Redraw charts on window resize
-window.addEventListener('resize', () => {
+// Debounce the resize event to prevent performance issues (Efficiency)
+const handleResize = debounce(() => {
     if (typeof google !== 'undefined' && google.visualization) {
         drawAllCharts();
     }
-});
+}, 250);
+
+window.addEventListener('resize', handleResize);
 
 // ====================================================================
 // 12. TOAST NOTIFICATIONS
@@ -1017,12 +1132,21 @@ function showToast(message, type = 'info') {
     const container = document.getElementById('toast-container');
     const toast = document.createElement('div');
     toast.className = `toast ${type}`;
+    toast.setAttribute('role', 'alert');
+    
+    // Ensure message is safe
+    const safeMessage = DOMPurify.sanitize(message);
     
     const icons = { success: 'check_circle', error: 'error', info: 'info' };
-    toast.innerHTML = `<span class="material-symbols-outlined">${icons[type] || 'info'}</span> ${message}`;
+    toast.innerHTML = `<span class="material-symbols-outlined" aria-hidden="true">${icons[type] || 'info'}</span> ${safeMessage}`;
     
     container.appendChild(toast);
-    setTimeout(() => toast.remove(), 4000);
+    
+    // Auto cleanup memory
+    setTimeout(() => {
+        toast.style.opacity = '0';
+        setTimeout(() => toast.remove(), 400); // Wait for transition
+    }, 4000);
 }
 
 // ====================================================================

@@ -1,15 +1,38 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" dir="ltr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CivicConnect - Smart Election Assistant</title>
-    <meta name="description" content="An interactive AI assistant helping you understand the election process, timelines, and registration steps. Powered by Google Services.">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self' https:; script-src 'self' 'unsafe-inline' 'unsafe-eval' https:; style-src 'self' 'unsafe-inline' https:; font-src 'self' data: https:; img-src 'self' data: https: blob:; frame-src https:; connect-src 'self' https: wss:;">
+    <meta name="referrer" content="strict-origin-when-cross-origin">
+    <title>CivicConnect - Smart Election Assistant | Voter Registration &amp; Education</title>
+    <meta name="description" content="CivicConnect is an AI-powered election assistant helping citizens understand voter registration, election timelines, polling stations, and eligibility. Powered by Google Gemini, Firebase, and Google Maps.">
+    <meta name="keywords" content="election assistant, voter registration, polling station finder, election timeline, civic education, AI chatbot">
+    <meta name="author" content="CivicConnect">
+    <meta name="robots" content="index, follow">
+    <meta property="og:title" content="CivicConnect - Smart Election Assistant">
+    <meta property="og:description" content="AI-powered election education platform with voter registration guidance, polling station finder, and interactive election statistics.">
+    <meta property="og:type" content="website">
+    <meta name="theme-color" content="#3b82f6">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet" />
     <link rel="stylesheet" href="style.css">
+
+    <!-- Structured Data (JSON-LD) for SEO -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "WebApplication",
+        "name": "CivicConnect",
+        "description": "AI-powered election education assistant",
+        "applicationCategory": "EducationalApplication",
+        "operatingSystem": "Web",
+        "offers": { "@type": "Offer", "price": "0" }
+    }
+    </script>
 
     <!-- Google Analytics (gtag.js) -->
     <!-- Replace G-XXXXXXXXXX with your own Google Analytics Measurement ID -->
@@ -18,19 +41,25 @@
         window.dataLayer = window.dataLayer || [];
         function gtag(){dataLayer.push(arguments);}
         gtag('js', new Date());
-        gtag('config', 'G-XXXXXXXXXX');
+        gtag('config', 'G-XXXXXXXXXX', { 'anonymize_ip': true, 'cookie_flags': 'SameSite=None;Secure' });
     </script>
 </head>
 <body>
 
+    <!-- Skip Navigation Link for Accessibility -->
+    <a href="#main-content" class="skip-link" id="skip-nav-link">Skip to main content</a>
+
+    <!-- Live region for screen reader announcements -->
+    <div id="sr-announcer" class="sr-only" aria-live="polite" aria-atomic="true" role="status"></div>
+
     <!-- ===== AUTH OVERLAY ===== -->
-    <div class="auth-overlay" id="auth-overlay">
+    <div class="auth-overlay" id="auth-overlay" role="dialog" aria-modal="true" aria-labelledby="auth-heading">
         <div class="auth-particles" id="auth-particles"></div>
         <div class="auth-card glass-panel" id="auth-card">
             <div class="auth-logo">
                 <span class="material-symbols-outlined auth-logo-icon">how_to_vote</span>
-                <h1>CivicConnect</h1>
-                <p class="auth-tagline">Your Smart Election Assistant</p>
+                <h1 id="auth-heading">CivicConnect</h1>
+                <p class="auth-tagline" id="auth-tagline">Your Smart Election Assistant</p>
             </div>
             
             <!-- Login Form -->
@@ -39,19 +68,21 @@
                 <div class="form-group">
                     <label for="login-email">Email Address</label>
                     <div class="input-icon-wrapper">
-                        <span class="material-symbols-outlined">mail</span>
-                        <input type="email" id="login-email" placeholder="citizen@example.com" autocomplete="email">
+                        <span class="material-symbols-outlined" aria-hidden="true">mail</span>
+                        <input type="email" id="login-email" placeholder="citizen@example.com" autocomplete="email" required aria-required="true" aria-describedby="login-email-hint">
+                        <span id="login-email-hint" class="sr-only">Enter your registered email address</span>
                     </div>
                 </div>
                 <div class="form-group">
                     <label for="login-password">Password</label>
                     <div class="input-icon-wrapper">
-                        <span class="material-symbols-outlined">lock</span>
-                        <input type="password" id="login-password" placeholder="••••••••" autocomplete="current-password">
+                        <span class="material-symbols-outlined" aria-hidden="true">lock</span>
+                        <input type="password" id="login-password" placeholder="••••••••" autocomplete="current-password" required aria-required="true" aria-describedby="login-pass-hint" minlength="6">
+                        <span id="login-pass-hint" class="sr-only">Enter your account password, minimum 6 characters</span>
                     </div>
                 </div>
-                <button class="auth-submit-btn" id="email-login-btn">
-                    <span class="material-symbols-outlined">login</span>
+                <button class="auth-submit-btn" id="email-login-btn" type="button" aria-label="Sign in with email and password">
+                    <span class="material-symbols-outlined" aria-hidden="true">login</span>
                     Sign In
                 </button>
 
@@ -59,14 +90,14 @@
                     <span>or continue with</span>
                 </div>
 
-                <button class="google-signin-btn" id="google-signin-btn">
-                    <svg width="20" height="20" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
+                <button class="google-signin-btn" id="google-signin-btn" type="button" aria-label="Sign in with your Google account">
+                    <svg width="20" height="20" viewBox="0 0 48 48" aria-hidden="true" role="img"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
                     Sign in with Google
                 </button>
 
                 <p class="auth-switch">Don't have an account? <a href="#" id="show-register">Create one</a></p>
-                <button class="skip-auth-btn" id="skip-auth-btn">
-                    <span class="material-symbols-outlined">visibility</span>
+                <button class="skip-auth-btn" id="skip-auth-btn" type="button" aria-label="Continue browsing as a guest without signing in">
+                    <span class="material-symbols-outlined" aria-hidden="true">visibility</span>
                     Continue as Guest
                 </button>
             </div>
@@ -112,8 +143,8 @@
                 <p class="auth-switch">Already have an account? <a href="#" id="show-login">Sign in</a></p>
             </div>
 
-            <div class="auth-error hidden" id="auth-error">
-                <span class="material-symbols-outlined">error</span>
+            <div class="auth-error hidden" id="auth-error" role="alert" aria-live="assertive">
+                <span class="material-symbols-outlined" aria-hidden="true">error</span>
                 <span id="auth-error-text"></span>
             </div>
         </div>
@@ -122,31 +153,31 @@
     <!-- ===== MAIN APPLICATION ===== -->
     <div class="app-container hidden" id="app-container">
         <!-- Sidebar Navigation -->
-        <aside class="sidebar" id="sidebar">
+        <aside class="sidebar" id="sidebar" role="navigation" aria-label="Main navigation">
             <div class="logo-area">
                 <span class="material-symbols-outlined logo-icon">how_to_vote</span>
                 <h1>CivicConnect</h1>
             </div>
             
-            <nav class="nav-menu">
-                <button class="nav-btn active" data-target="chat-view" id="nav-chat">
-                    <span class="material-symbols-outlined">smart_toy</span>
+            <nav class="nav-menu" aria-label="Application sections">
+                <button class="nav-btn active" data-target="chat-view" id="nav-chat" aria-pressed="true" aria-label="AI Assistant - Chat with election bot" role="tab">
+                    <span class="material-symbols-outlined" aria-hidden="true">smart_toy</span>
                     <span>AI Assistant</span>
                 </button>
-                <button class="nav-btn" data-target="timeline-view" id="nav-timeline">
-                    <span class="material-symbols-outlined">calendar_month</span>
+                <button class="nav-btn" data-target="timeline-view" id="nav-timeline" aria-pressed="false" aria-label="Election Timeline - Key dates and deadlines" role="tab">
+                    <span class="material-symbols-outlined" aria-hidden="true">calendar_month</span>
                     <span>Election Timeline</span>
                 </button>
-                <button class="nav-btn" data-target="maps-view" id="nav-maps">
-                    <span class="material-symbols-outlined">location_on</span>
+                <button class="nav-btn" data-target="maps-view" id="nav-maps" aria-pressed="false" aria-label="Polling Station - Find your voting location" role="tab">
+                    <span class="material-symbols-outlined" aria-hidden="true">location_on</span>
                     <span>Polling Station</span>
                 </button>
-                <button class="nav-btn" data-target="registration-view" id="nav-register">
-                    <span class="material-symbols-outlined">app_registration</span>
+                <button class="nav-btn" data-target="registration-view" id="nav-register" aria-pressed="false" aria-label="Registration Steps - How to register to vote" role="tab">
+                    <span class="material-symbols-outlined" aria-hidden="true">app_registration</span>
                     <span>Registration Steps</span>
                 </button>
-                <button class="nav-btn" data-target="stats-view" id="nav-stats">
-                    <span class="material-symbols-outlined">bar_chart</span>
+                <button class="nav-btn" data-target="stats-view" id="nav-stats" aria-pressed="false" aria-label="Election Stats - Voter turnout and demographics" role="tab">
+                    <span class="material-symbols-outlined" aria-hidden="true">bar_chart</span>
                     <span>Election Stats</span>
                 </button>
             </nav>
@@ -169,8 +200,8 @@
                         <span class="user-name" id="user-display-name">Citizen</span>
                         <span class="user-status" id="user-auth-status">Guest</span>
                     </div>
-                    <button class="icon-btn logout-btn" id="logout-btn" title="Sign Out">
-                        <span class="material-symbols-outlined">logout</span>
+                    <button class="icon-btn logout-btn" id="logout-btn" title="Sign Out" aria-label="Sign out of your account" type="button">
+                        <span class="material-symbols-outlined" aria-hidden="true">logout</span>
                     </button>
                 </div>
             </div>
@@ -191,9 +222,9 @@
         </div>
 
         <!-- Main Content Area -->
-        <main class="main-content">
+        <main class="main-content" id="main-content" role="main" aria-label="Main application content">
             <!-- 1. AI Chat Assistant View -->
-            <section id="chat-view" class="view-section active custom-scrollbar">
+            <section id="chat-view" class="view-section active custom-scrollbar" role="tabpanel" aria-labelledby="nav-chat">
                 <header class="section-header glass-panel">
                     <div class="header-title">
                         <h2>Election AI Assistant</h2>
@@ -201,14 +232,14 @@
                     </div>
                     <p class="subtitle">Ask me anything about voter registration, election dates, or candidates.</p>
                     <div class="header-actions">
-                        <button class="icon-btn tooltip" id="tts-toggle" data-tooltip="Toggle Text-to-Speech">
-                            <span class="material-symbols-outlined">volume_up</span>
+                        <button class="icon-btn tooltip" id="tts-toggle" data-tooltip="Toggle Text-to-Speech" aria-label="Toggle text-to-speech for bot responses" aria-pressed="false" type="button">
+                            <span class="material-symbols-outlined" aria-hidden="true">volume_up</span>
                         </button>
                     </div>
                 </header>
 
                 <div class="chat-container">
-                    <div class="chat-messages" id="chat-messages">
+                    <div class="chat-messages" id="chat-messages" role="log" aria-live="polite" aria-label="Chat conversation">
                         <!-- Messages point -->
                         <div class="message assistant">
                             <div class="msg-avatar">
@@ -229,12 +260,12 @@
 
                     <div class="chat-input-area glass-panel">
                         <div class="input-wrapper">
-                            <button class="icon-btn tooltip" id="voice-input-btn" data-tooltip="Voice Input (Web Speech API)">
-                                <span class="material-symbols-outlined" id="mic-icon">mic</span>
+                            <button class="icon-btn tooltip" id="voice-input-btn" data-tooltip="Voice Input (Web Speech API)" aria-label="Start voice input - speak your question" type="button">
+                                <span class="material-symbols-outlined" id="mic-icon" aria-hidden="true">mic</span>
                             </button>
-                            <input type="text" id="chat-input" placeholder="Type your question here..." autocomplete="off">
-                            <button class="send-btn" id="send-btn">
-                                <span class="material-symbols-outlined">send</span>
+                            <input type="text" id="chat-input" placeholder="Type your question here..." autocomplete="off" aria-label="Type your election question" role="textbox">
+                            <button class="send-btn" id="send-btn" aria-label="Send message" type="button">
+                                <span class="material-symbols-outlined" aria-hidden="true">send</span>
                             </button>
                         </div>
                     </div>
@@ -242,7 +273,7 @@
             </section>
 
             <!-- 2. Election Timeline View -->
-            <section id="timeline-view" class="view-section custom-scrollbar">
+            <section id="timeline-view" class="view-section custom-scrollbar" role="tabpanel" aria-labelledby="nav-timeline">
                 <header class="section-header glass-panel">
                     <h2>Election Timeline 2026</h2>
                     <p class="subtitle">Key dates and deadlines for the upcoming elections.</p>
@@ -334,7 +365,7 @@
             </section>
 
             <!-- 3. Maps View -->
-            <section id="maps-view" class="view-section custom-scrollbar">
+            <section id="maps-view" class="view-section custom-scrollbar" role="tabpanel" aria-labelledby="nav-maps">
                 <header class="section-header glass-panel">
                     <h2>Find Polling Station</h2>
                     <p class="subtitle">Powered by Google Maps — locate your nearest polling booth.</p>
@@ -343,20 +374,22 @@
                 <div class="maps-container">
                     <div class="search-box glass-panel">
                         <span class="material-symbols-outlined">search</span>
-                        <input type="text" id="map-search-input" placeholder="Enter your ZIP code or address...">
-                        <button class="btn-primary-inline" id="map-search-btn">Search</button>
+                        <input type="text" id="map-search-input" placeholder="Enter your ZIP code or address..." aria-label="Search for polling stations by ZIP code or address">
+                        <button class="btn-primary-inline" id="map-search-btn" type="button" aria-label="Search for nearby polling stations">Search</button>
                     </div>
                     
                     <div class="map-wrapper glass-panel">
                         <iframe 
                             id="google-map-frame"
+                            title="Google Maps - Polling Station Locator"
                             src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d100939.98555098464!2d-122.507640204439!3d37.7578149966017!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x80859a6d00690021%3A0x4a501367f076adff!2sSan%20Francisco%2C%20CA!5e0!3m2!1sen!2sus!4v1700000000000!5m2!1sen!2sus" 
                             width="100%" 
                             height="100%" 
                             style="border:0;" 
                             allowfullscreen="" 
                             loading="lazy" 
-                            referrerpolicy="no-referrer-when-downgrade">
+                            referrerpolicy="no-referrer-when-downgrade"
+                            sandbox="allow-scripts allow-same-origin allow-popups">
                         </iframe>
                         
                         <div class="map-overlay">
@@ -379,7 +412,7 @@
             </section>
 
             <!-- 4. Registration View -->
-            <section id="registration-view" class="view-section custom-scrollbar">
+            <section id="registration-view" class="view-section custom-scrollbar" role="tabpanel" aria-labelledby="nav-register">
                 <header class="section-header glass-panel">
                     <h2>Registration Steps</h2>
                     <p class="subtitle">A simple guide to getting ready for Election Day.</p>
@@ -463,7 +496,7 @@
             </section>
 
             <!-- 5. Election Statistics View (Google Charts) -->
-            <section id="stats-view" class="view-section custom-scrollbar">
+            <section id="stats-view" class="view-section custom-scrollbar" role="tabpanel" aria-labelledby="nav-stats">
                 <header class="section-header glass-panel">
                     <h2>Election Statistics</h2>
                     <p class="subtitle">Interactive data visualization powered by Google Charts.</p>
@@ -508,7 +541,7 @@
     </div>
 
     <!-- Toast Notification -->
-    <div class="toast-container" id="toast-container"></div>
+    <div class="toast-container" id="toast-container" role="status" aria-live="polite" aria-label="Notifications"></div>
 
     <!-- Firebase SDK (v9 compat) -->
     <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>

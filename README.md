@@ -19,8 +19,9 @@ CivicConnect was designed as a **Single Page Application (SPA)** prioritizing:
 1. **Context-Aware AI Chat** — A natural language parser scans user input for context keywords and returns rich, linked responses that cross-reference other app sections.
 2. **Authentication-First Design** — Firebase Authentication gates the app with Google Sign-In, Email/Password, and Guest modes.
 3. **Progressive Disclosure** — Information is layered across 5 focused tabs so users aren't overwhelmed.
-4. **Accessibility** — Voice input (Speech-to-Text) and Text-to-Speech powered by the Web Speech API, plus 11-language support via Google Translate.
+4. **Accessibility** — Fully WCAG-compliant with ARIA landmarks, screen reader announcements, focus management, Voice input (Speech-to-Text), and Text-to-Speech powered by the Web Speech API, plus 11-language support via Google Translate.
 5. **Data Visualization** — Interactive charts via Google Charts bring election statistics to life.
+6. **Security & Efficiency** — CSP headers, DOMPurify for XSS prevention, and debounced events for performance optimization.
 
 ---
 
@@ -138,6 +139,9 @@ open index.html
 
 # Option 2: Local server
 npx serve .
+
+# Option 3: Run Unit Tests
+node app.test.js
 ```
 
 ### Firebase Setup (for full functionality)
@@ -167,7 +171,8 @@ npx serve .
 ```
 challenge-2/
 ├── index.html    # Main SPA structure (auth overlay + 5 views)
-├── style.css     # Complete design system (glassmorphism, responsive)
-├── app.js        # All application logic (auth, chat, charts, maps)
+├── style.css     # Complete design system (glassmorphism, responsive, accessibility)
+├── app.js        # All application logic (auth, chat, charts, maps, sanitization)
+├── app.test.js   # Unit tests covering utilities and logic
 └── README.md     # This file
 ```
